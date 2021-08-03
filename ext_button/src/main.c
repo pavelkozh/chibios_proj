@@ -2,14 +2,6 @@
 #include "hal.h"
 #include "callbacks.h"
 
-static void buttonCallback(void *arg){
-
-	(void)arg;
-	//palTogglePad(GPIOA,GPIOA_LED_GREEN);
-	palToggleLine(LINE_LED_GREEN);
-
-}
-
 int main(void) {
 
     halInit();

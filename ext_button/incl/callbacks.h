@@ -5,9 +5,9 @@
  *      Author: User
  */
 
-#ifndef INCL_CALLBACKS_H_
-#define INCL_CALLBACKS_H_
+#ifndef CALLBACKS_H_INCLUDED
+#define CALLBACKS_H_INCLUDED
 
-static void buttonCallback(void *arg);
+void buttonCallback(void *arg);
 
 #endif /* INCL_CALLBACKS_H_ */
