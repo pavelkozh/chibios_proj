@@ -1,5 +1,6 @@
 # C source files
-PROJECT_CSRC 	= src/main.c
+PROJECT_CSRC 	= src/main.c \
+		  src/callbacks.c
 				  
 # C++ source files
 PROJECT_CPPSRC 	= 

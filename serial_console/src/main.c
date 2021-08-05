@@ -21,8 +21,8 @@ static THD_FUNCTION(readText, arg) {
   while (1)
   {
 	sdRead(SDdriver,ptr,1);
-    chThdSleepSeconds(1);
 	sdWrite(SDdriver,ptr,1);
+	chThdSleepMilliseconds(1);
 
   }
 }
@@ -35,7 +35,7 @@ int main(void) {
     chSysInit();
     sdInit();
     sdStart(SDdriver,&sdconf);
-    chThdCreateStatic(waReadText, sizeof(waReadText), NORMALPRIO+3, readText, NULL);
+    chThdCreateStatic(waReadText, sizeof(waReadText), NORMALPRIO+1, readText, NULL);
     palSetPadMode(GPIOA,GPIOA_LED_GREEN,PAL_MODE_OUTPUT_PUSHPULL);
     sdWrite(SDdriver,str_pointer,strlen(str_pointer));
 
