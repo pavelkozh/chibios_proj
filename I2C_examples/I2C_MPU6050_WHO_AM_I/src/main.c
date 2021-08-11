@@ -11,7 +11,7 @@ static const I2CConfig i2cconfig = {
 
 		OPMODE_I2C,			//i2c mode
 		400000,				//400 kHz
-		FAST_DUTY_CYCLE_2,  //
+		FAST_DUTY_CYCLE_2,  //FAST_DUTY_CYCLE_16_9
 
 };
 
@@ -22,20 +22,8 @@ static const SerialConfig sdconf = {
   .cr3 = 0
 };
 
-/*static THD_WORKING_AREA(waReadText, 128);
-static THD_FUNCTION(readText, arg) {
 
-  (void)arg;
-  while (1)
-  {
-	sdRead(SDdriver,ptr,1);
-	sdWrite(SDdriver,ptr,1);
-	chThdSleepMilliseconds(1);
-
-  }
-}*/
-
-uint8_t transmitt_buf[1]={0x35};
+uint8_t transmitt_buf[1]={0x75};
 uint8_t receive_buf[1]={0};
 
 int main(void) {
@@ -44,31 +32,25 @@ int main(void) {
     halInit();
     chSysInit();
 
-    palSetPadMode(GPIOB,GPIOB_ARD_D14,PAL_MODE_ALTERNATE(4));//SDA
-	palSetPadMode(GPIOB,GPIOB_ARD_D15,PAL_MODE_ALTERNATE(4));//SCL
+    palSetPadMode(GPIOB,GPIOB_PIN7,PAL_MODE_ALTERNATE(4));//SDA PB7
+    palSetPadMode(GPIOB,GPIOB_ARD_D10,PAL_MODE_ALTERNATE(4));//SCL PB6
 	palSetPadMode(GPIOA,GPIOA_LED_GREEN,PAL_MODE_OUTPUT_PUSHPULL);
 	palClearLine(LINE_LED_GREEN);
-	sdInit();
-    i2cInit();
 
     sdStart(SDdriver, &sdconf);
     i2cStart(i2cDriver, &i2cconfig);
 
     i2cflags_t flag=255;
 
-    i2cMasterTransmitTimeout(i2cDriver, MPU6050_ADDR, transmitt_buf, 1, receive_buf, 1, TIME_INFINITE);
+    msg_t mes = i2cMasterTransmitTimeout(i2cDriver, MPU6050_ADDR, transmitt_buf, 1, receive_buf, 1, TIME_INFINITE);
+    sdPut(SDdriver,mes+0x30);
+    sdPut(SDdriver,' ');
     flag=i2cGetErrors(i2cDriver);
 
     sdPut(SDdriver,flag+0x30);
     sdPut(SDdriver,'\n');
     sdPut(SDdriver,'\r');
-    if (receive_buf[0] == 0)     palSetLine(LINE_LED_GREEN);
-
-
-
-
-    /*chThdCreateStatic(waReadText, sizeof(waReadText), NORMALPRIO+1, readText, NULL);
-*/
+    if (receive_buf[0] == 0x68)  palSetLine(LINE_LED_GREEN);
 
     while (1) {
 
