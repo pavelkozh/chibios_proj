@@ -5,6 +5,7 @@
 
 #define MPU6050_ADDR 0x69 //pin AD0 = 1
 #define GYRO_ADDR 0x6B //pin SDO = 1
+#define ACCEL_ADDR 0x18 //pin SDO = 0
 
 static const SerialConfig sd_st_cfg = {
   .speed = 38400,
@@ -54,11 +55,13 @@ static const I2CConfig i2cconfig = {
 };*/
 
 
-uint8_t init_array[2]={0x20,0x0F};//normal mode
+uint8_t gyro_init[2]={0x20,0x0F};//normal mode, 250dps
+uint8_t accel_init[2]={0x20,0x77};//normal mode, 400 Hz, +-2g
 uint8_t xyz_reg[1]={0x28|(1<<7)};//auto increment mode
-
-uint8_t output_data[6]={};
-uint16_t xyz_data[3]={};
+uint16_t gyro_data[3]={};
+uint16_t accel_data[3]={};
+float gyro_dps[3];
+float accel_g[3];
 
 int main(void) {
 
@@ -75,17 +78,33 @@ int main(void) {
 
     i2cStart(i2cDriver, &i2cconfig);
 
-    //sensor init
-    i2cMasterTransmitTimeout(i2cDriver, GYRO_ADDR, init_array, 2, NULL, 0, TIME_INFINITE);
+    //gyro init
+    i2cMasterTransmitTimeout(i2cDriver, GYRO_ADDR, gyro_init, 2, NULL, 0, TIME_INFINITE);
+
+    //accelerometer init
+    i2cMasterTransmitTimeout(i2cDriver, ACCEL_ADDR, accel_init, 2, NULL, 0, TIME_INFINITE);
 
     while (1) {
 
-    	i2cMasterTransmitTimeout(i2cDriver, GYRO_ADDR, xyz_reg, 1, output_data, 6, TIME_INFINITE);
-    	xyz_data[0] = output_data[0] | (output_data[1] << 8 );// x data
-    	xyz_data[1] = output_data[2] | (output_data[3] << 8 );// y data
-    	xyz_data[2] = output_data[4] | (output_data[5] << 8 );// z data
-        dbgprintf("x = %d, y = %d, z = %d\r\n",
-        		xyz_data[0],xyz_data[1],xyz_data[2]);
+    	i2cMasterTransmitTimeout(i2cDriver, GYRO_ADDR, xyz_reg, 1, (uint8_t *)gyro_data, 6, TIME_INFINITE);
+    	i2cMasterTransmitTimeout(i2cDriver, ACCEL_ADDR, xyz_reg, 1, (uint8_t *)accel_data, 6, TIME_INFINITE);
+    	for(uint8_t i = 0; i < 3; i++)
+    	{
+    	    gyro_dps[i] = gyro_data[i] * 0.00875;
+    	}
+
+    	for(uint8_t j = 0; j < 3; j++)
+    	{
+    	    accel_g[j] = accel_data[j] * 0.004;
+    	}
+
+    	dbgprintf("dps: x = %f, y = %f, z = %f\r\n",
+    			gyro_dps[0],gyro_dps[1],gyro_dps[2]);
+
+    	dbgprintf("g: x = %f, y = %f, z = %f\r\n",
+    			accel_g[0],accel_g[1],accel_g[2]);
+
+    	dbgprintf("\r\n");
         chThdSleepMilliseconds(1000);
 
     }
